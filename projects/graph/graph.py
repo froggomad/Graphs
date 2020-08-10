@@ -39,16 +39,24 @@ class Graph:
 
             if v not in visited:
                 visited.add(v)
+                print(v)
                 for neighbor in self.get_neighbors(v):
                     q.enqueue(neighbor)
-        return visited
 
     def dft(self, start):
         #init Stack(v1)
+        s = Stack()
+        s.push(start)
+        visited = set()
         # is Stack empty?
+        while s.size() > 0:            
         # no - pop, add to visited, add neighbors that aren't visited, loop
-        # yes - done
-        pass
+            v = s.pop()
+            if v not in visited:
+                visited.add(v)
+                print(v)
+                for neighbor in self.get_neighbors(v):
+                    s.push(neighbor)        
 
     def dft_recursive(self, starting_vertex):
         """
@@ -130,7 +138,7 @@ if __name__ == '__main__':
     #     1, 2, 4, 3, 7, 6, 5
     #     1, 2, 4, 3, 7, 5, 6
     # '''
-    print(graph.bft(1))
+    # graph.bft(1)
 
     # '''
     # Valid DFT paths:
@@ -139,7 +147,7 @@ if __name__ == '__main__':
     #     1, 2, 4, 7, 6, 3, 5
     #     1, 2, 4, 6, 3, 5, 7
     # '''
-    # graph.dft(1)
+    graph.dft(1)
     # graph.dft_recursive(1)
 
     # '''
