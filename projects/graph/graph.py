@@ -67,7 +67,7 @@ class Graph:
         """
         # append vertex to visited list
         visited.append(vertex)
-        # print neighbors and add to visited list
+        # print neighbors and add to visited list if not already visited
         for neighbor in self.get_neighbors(vertex):
             if neighbor not in visited:
                 print(neighbor)
@@ -77,12 +77,30 @@ class Graph:
         return visited
 
 
-    def bfs(self, start):
+    def bfs(self, start, target):
         """ track path to target node """
         # init Q [start]
+        q = Queue()
+        q.enqueue([start])
         # set of visited
+        visited = list()
         # while Q not empty:
-        # enqueue list of path to neighbors ([start, v1], [start, v2])
+        while q.size() > 0:
+            v = q.dequeue()
+            #last node in path
+            node = v[-1]
+            if node not in visited:
+                for neighbor in self.get_neighbors(node):
+                    path = list(v)
+                    # enqueue list of path to neighbors ([start, 2], [start, 3], etc)
+                    path.append(neighbor)
+                    q.enqueue(path)
+                # return path if neighbour is target
+                    if neighbor == target:
+                        return path
+                visited.append(node)
+        
+
         # add path to list of visited        
         # DQ
         pass
@@ -158,13 +176,13 @@ if __name__ == '__main__':
     #     1, 2, 4, 6, 3, 5, 7
     # '''
     # graph.dft(1)
-    graph.dft_recursive(1)
+    # graph.dft_recursive(1)
 
     # '''
     # Valid BFS path:
     #     [1, 2, 4, 6]
     # '''
-    # print(graph.bfs(1, 6))
+    print(graph.bfs(1, 6))
 
     # '''
     # Valid DFS paths:
