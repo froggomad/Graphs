@@ -38,9 +38,10 @@ class Graph:
             v = q.dequeue()
 
             if v not in visited:
-                print(v)
-                for neighbor in v.get_neighbors():
+                visited.add(v)
+                for neighbor in self.get_neighbors(v):
                     q.enqueue(neighbor)
+        return visited
 
     def dft(self, start):
         #init Stack(v1)
@@ -87,39 +88,26 @@ class Graph:
         pass  # TODO
 
 if __name__ == '__main__':
+#####TODO:######
     graph = Graph()  # Instantiate your graph
-    graph.add_vertex('0')
-    graph.add_vertex('1')
-    graph.add_vertex('2')
-    graph.add_vertex('3')
-    graph.add_edge('0', '1')
-    graph.add_edge('1', '0')
-    graph.add_edge('0', '3')
-    graph.add_edge('3', '0')
-    print(graph.vertices)
-
-
-
-######TODO:######
-    # graph = Graph()  # Instantiate your graph
-    # # https://github.com/LambdaSchool/Graphs/blob/master/objectives/breadth-first-search/img/bfs-visit-order.png
-    # graph.add_vertex(1)
-    # graph.add_vertex(2)
-    # graph.add_vertex(3)
-    # graph.add_vertex(4)
-    # graph.add_vertex(5)
-    # graph.add_vertex(6)
-    # graph.add_vertex(7)
-    # graph.add_edge(5, 3)
-    # graph.add_edge(6, 3)
-    # graph.add_edge(7, 1)
-    # graph.add_edge(4, 7)
-    # graph.add_edge(1, 2)
-    # graph.add_edge(7, 6)
-    # graph.add_edge(2, 4)
-    # graph.add_edge(3, 5)
-    # graph.add_edge(2, 3)
-    # graph.add_edge(4, 6)
+    # https://github.com/LambdaSchool/Graphs/blob/master/objectives/breadth-first-search/img/bfs-visit-order.png
+    graph.add_vertex(1)
+    graph.add_vertex(2)
+    graph.add_vertex(3)
+    graph.add_vertex(4)
+    graph.add_vertex(5)
+    graph.add_vertex(6)
+    graph.add_vertex(7)
+    graph.add_edge(5, 3)
+    graph.add_edge(6, 3)
+    graph.add_edge(7, 1)
+    graph.add_edge(4, 7)
+    graph.add_edge(1, 2)
+    graph.add_edge(7, 6)
+    graph.add_edge(2, 4)
+    graph.add_edge(3, 5)
+    graph.add_edge(2, 3)
+    graph.add_edge(4, 6)
 
     # '''
     # Should print:
@@ -142,7 +130,7 @@ if __name__ == '__main__':
     #     1, 2, 4, 3, 7, 6, 5
     #     1, 2, 4, 3, 7, 5, 6
     # '''
-    # graph.bft(1)
+    print(graph.bft(1))
 
     # '''
     # Valid DFT paths:
