@@ -58,7 +58,7 @@ class Graph:
                 for neighbor in self.get_neighbors(v):
                     s.push(neighbor)        
 
-    def dft_recursive(self, vertex, visited = []):
+    def dft_recursive(self, vertex, visited = None):
         """
         Print each vertex in depth-first order
         beginning from starting_vertex.
@@ -66,6 +66,8 @@ class Graph:
         This should be done using recursion.
         """
         # append vertex to visited list
+        if visited == None:
+            visited = []
         visited.append(vertex)
         # print neighbors and add to visited list if not already visited
         for neighbor in self.get_neighbors(vertex):
@@ -127,7 +129,7 @@ class Graph:
                         return path
                 visited.append(node)
 
-    def dfs_recursive(self, starting_vertex, destination_vertex):
+    def dfs_recursive(self, start, target, visited=None, path = None):
         """
         Return a list containing a path from
         starting_vertex to destination_vertex in
@@ -135,7 +137,27 @@ class Graph:
 
         This should be done using recursion.
         """
-        pass  # TODO
+        #init
+        if path == None:
+            path = []
+        if visited == None:
+            visited = []
+        #begin recursion
+        visited.append(start)
+        #this creates a copy of paths and appends [start]
+        path = path + [start]
+
+        if start == target:
+            return path
+
+        for neighbor in self.get_neighbors(start):            
+            if neighbor not in visited:
+                #trigger recursion
+                new_path = self.dfs_recursive(neighbor, target, visited, path)
+                if new_path is not None:
+                    return new_path
+        #not found
+        return None
 
 if __name__ == '__main__':
 #####TODO:######
@@ -203,5 +225,5 @@ if __name__ == '__main__':
     #     [1, 2, 4, 6]
     #     [1, 2, 4, 7, 6]
     # '''
-    print(graph.dfs(1, 6))
-    # print(graph.dfs_recursive(1, 6))
+    #print(graph.dfs(1, 6))
+    print(graph.dfs_recursive(1, 6))
