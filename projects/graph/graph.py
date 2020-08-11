@@ -95,23 +95,37 @@ class Graph:
                     # enqueue list of path to neighbors ([start, 2], [start, 3], etc)
                     path.append(neighbor)
                     q.enqueue(path)
-                # return path if neighbour is target
+                # return path if neighbor is target
                     if neighbor == target:
                         return path
                 visited.append(node)
-        
 
-        # add path to list of visited        
-        # DQ
-        pass
-
-    def dfs(self, starting_vertex, destination_vertex):
+    def dfs(self, start, target):
         """
         Return a list containing a path from
         starting_vertex to destination_vertex in
         depth-first order.
         """
-        pass  # TODO
+        # init Stack[start]
+        s = Stack()
+        s.push([start])
+        # set of visited
+        visited = list()
+        # while Stack not empty:
+        while s.size() > 0:
+            v = s.pop()
+            #last node in path
+            node = v[-1]
+            if node not in visited:
+                for neighbor in self.get_neighbors(node):
+                    path = list(v)
+                    # push list of path to neighbors ([start, 2], [start, 3], etc)
+                    path.append(neighbor)
+                    s.push(path)
+                # return path if neighbor is target
+                    if neighbor == target:
+                        return path
+                visited.append(node)
 
     def dfs_recursive(self, starting_vertex, destination_vertex):
         """
@@ -182,12 +196,12 @@ if __name__ == '__main__':
     # Valid BFS path:
     #     [1, 2, 4, 6]
     # '''
-    print(graph.bfs(1, 6))
+    #print(graph.bfs(1, 6))
 
     # '''
     # Valid DFS paths:
     #     [1, 2, 4, 6]
     #     [1, 2, 4, 7, 6]
     # '''
-    # print(graph.dfs(1, 6))
+    print(graph.dfs(1, 6))
     # print(graph.dfs_recursive(1, 6))
