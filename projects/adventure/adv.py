@@ -15,9 +15,9 @@ world = World()
 #map_file = "maps/test_cross.txt" #pass 14 moves -> return_to_fork method 17 moves
 
 
-#map_file = "maps/test_loop.txt" #pass 14 moves -> return_to_fork method 22 moves
-#map_file = "maps/test_loop_fork.txt" #pass -> return_to_fork method 35 moves
-map_file = "maps/main_maze.txt"
+#map_file = "maps/test_loop.txt" #pass 14 moves -> return_to_fork method 22 moves, BFT 20 moves
+#map_file = "maps/test_loop_fork.txt" #pass -> return_to_fork method 35 moves, BFT 32 moves
+map_file = "maps/main_maze.txt" #pass BFT 1026 moves
 
 # Loads the map into a dictionary
 room_graph=literal_eval(open(map_file, "r").read())
@@ -32,120 +32,131 @@ player = Player(world.starting_room)
 # traversal_path = ['n', 'n']
 #TODO: track visited rooms, add to traversal path as appropriate
 
+class Queue():
+    def __init__(self):
+        self.queue = []
+    def enqueue(self, value):
+        self.queue.append(value)
+    def dequeue(self):
+        if self.size() > 0:
+            return self.queue.pop(0)
+        else:
+            return None
+    def size(self):
+        return len(self.queue)
+
 #init
 traversal_path = []
-#store nodes with more than one exit
-forks = {}
-
 visited = set()
-current_room = player.current_room
 
-#set direction to travel after moving
-def first_visit():
-    rooms = current_room.get_exits()
-    #get visited neighbors
-    to_visit = []
-    for direction in rooms:
-        room = current_room.get_room_in_direction(direction)
-        if room not in visited:
-            to_visit.append(direction)
-
-    for direction in to_visit:
-        room = current_room.get_room_in_direction(direction)        
-        if room in forks:
-            if len(forks[room]) == 1 and len(to_visit) == 1:
-                return direction
-        else:
-            return direction
-
-    return False
+#hash map containing graphs of paths
+room_maps = {
+    0: {'n': '?', 's': '?', 'e': '?', 'w': '?'}
+}
 
 def reverse_dir(dir):
     if dir == "n":
         return "s"
+    elif dir == "w":
+        return "e"
     elif dir == "s":
         return "n"
-    elif dir == "e":
+    else:
         return "w"
-    else:
-        return "e"
 
-def return_to_fork():
-    """travel back to the last fork by reverse-traversing `traversal_path` until current_room == fork"""
-    #get the last fork in the dict (python 3.6+ has ordered dicts by default)
-    last_fork = list(forks.items())[-1][0]
-    #copy the traversal list so we can modify it to efficiently get back to the last fork
-    temp_traverse = copy(traversal_path)
-    while current_room.id != last_fork.id and len(visited) < len(room_graph):
-        print(f"returning to fork at {last_fork.id}. currently at {current_room.id}")
-        dir = reverse_dir(temp_traverse.pop())
-        travel(dir)
-    #reached the fork
-    if first_visit():
-        travel(first_visit())
-    else:
-        travel(forks[last_fork][0])
+def travel_map(dir):
+    """create map of adjacent room, travel, and update room_maps"""
+    directions = {}
+    #room id before travel
+    from_id = player.current_room.id
+    from_dir = reverse_dir(dir)
 
-def first_available():
-    return current_room.get_exits()[0]
-
-def travel(dir):
-    global current_room
-    #current_room hasn't been reassigned yet, this is the room before moving
-    #add new room to visited and/or forks
-    if current_room not in visited:        
-        #add current room to forks if it has more than one exit that hasn't been visited yet
-        exits = current_room.get_exits()
-        exits.remove(dir)
-        if len(exits) >= 2:
-            for direction in exits:
-                room = current_room.get_room_in_direction(direction)
-                if room in visited:
-                    exits.remove(direction)
-        if len(exits) >= 2:
-            forks[current_room] = exits
-
-        if current_room not in forks:
-            visited.add(current_room)
-    #existing forks:
-    if current_room in forks:
-        if dir in forks[current_room]:
-            forks[current_room].remove(dir)
-            if forks[current_room] == []:
-                del forks[current_room]
-                visited.add(current_room)
+    #get room id of room traveling to and update map
+    room_id = player.current_room.get_room_in_direction(dir).id
+    room_maps[from_id][dir] = room_id
     
-    #travel           
+    #travel and add directions to traversal_path
     player.travel(dir)
-    traversal_path.append(dir)
-    current_room = player.current_room
-    
-    
+    traversal_path.append(dir)   
 
-def backtrack():
-    while first_visit() == False and len(visited) < len(room_graph):
-        if current_room not in forks:
-            return_to_fork()
-        else:
-            visited.add(current_room)
-    return first_visit()
+    if room_id not in room_maps:
+        for exit in player.current_room.get_exits():
+            reverse = reverse_dir(exit)
+
+            exit_id = player.current_room.get_room_in_direction(exit).id
+            # add new room
+            if exit_id not in room_maps:
+                directions[exit] = "?"                            
+            # update room we traveled from in new room's directions:
+            elif exit is from_dir:
+                directions[exit] = from_id
+            # handle loops by marking connected room with current room's id to avoid backtracking
+            elif room_maps[exit_id][reverse] == "?":
+                print(f"""
+***
+current room: {player.current_room.id}
+came from room: {from_id} to the {reverse}
+marking: room {exit_id} to the {exit}
+with id: {player.current_room.id}
+***
+                    """)
+                    
+                room_maps[exit_id][reverse] = room_id
+
+        room_maps[room_id] = directions
+
+def find_nearest_exit(to_id):
+    """perform BFS to find nearest exit ('?')"""
+    queue = Queue()
+    path = []
+    queue.enqueue([(to_id, None)])
+    visited_rooms = set()
+
+    while queue.size() > 0:
+        path = queue.dequeue()
+        room = path[-1]
+
+        for dir, room in room_maps[room[0]].items():
+            #add room to path
+            if room not in visited_rooms:
+                room_path = list(path)
+                room_path.append((room, dir))
+                visited_rooms.add(room)
+                
+                queue.enqueue(room_path)
+                #closest exit
+                if room == "?":
+                    room_path.pop(0)
+                    path_to_room = [room[1] for room in room_path]
+                    return path_to_room
+    #path not found
+    return None
 
 # MARK: Run Loop
-while len(visited) < len(room_graph):    
-    visit = first_visit()
-    print(f"step: {len(traversal_path)}")
-    print(f"I'm going {visit}")
-    if visit:
-        travel(visit)
-    else:
-        #TODO: Backtrack to last node where there was a choice
-        while not visit and len(visited) < len(room_graph):
-            backtrack()
-            visit = first_visit()
-            
-    print(f"I'm at {current_room.id}")
 
+#init Stack with starting direction to avoid munging traversal_path
+stack = list()
+stack.append("n")
 
+while len(room_graph) > len(room_maps):
+    dir = stack.pop()
+    next = player.current_room.get_room_in_direction(dir)
+
+    exits = player.current_room.get_exits()
+    # MARK: Traverse
+    if next:
+        stack.append(dir)
+        travel_map(dir)
+
+        print(f"I'm in room {player.current_room.id}. I came from the {reverse_dir(dir)}")
+    #BFS to find direction to add to stack 
+    elif len(stack) == 0:
+        for exit in exits:
+            to_next_dir = find_nearest_exit(player.current_room.id)
+            for i, to_room in enumerate(to_next_dir):
+                travel_map(to_room)
+                if i == len(to_next_dir) - 1:
+                    stack.append(to_room)
 
 # MARK: TRAVERSAL TEST
 visited_rooms = set()
@@ -171,9 +182,8 @@ else:
 player.current_room.print_room_description(player)
 while True:
     cmds = input("-> ").lower().split(" ")
-    if cmds[0] in ["n", "s", "e", "w"]:
-        pass
-        #player.travel(cmds[0], True)
+    if cmds[0] in ["n", "s", "e", "w"]:        
+        player.travel(cmds[0], True)
     elif cmds[0] == "q":
         break
     else:
