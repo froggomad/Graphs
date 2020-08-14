@@ -6,6 +6,19 @@ from copy import copy
 import random
 from ast import literal_eval
 
+class Queue():
+    def __init__(self):
+        self.queue = []
+    def enqueue(self, value):
+        self.queue.append(value)
+    def dequeue(self):
+        if self.size() > 0:
+            return self.queue.pop(0)
+        else:
+            return None
+    def size(self):
+        return len(self.queue)
+
 # Load world
 world = World()
 
@@ -28,28 +41,11 @@ world.print_rooms()
 
 player = Player(world.starting_room)
 
-# Fill this out with directions to walk
-# traversal_path = ['n', 'n']
-#TODO: track visited rooms, add to traversal path as appropriate
-
-class Queue():
-    def __init__(self):
-        self.queue = []
-    def enqueue(self, value):
-        self.queue.append(value)
-    def dequeue(self):
-        if self.size() > 0:
-            return self.queue.pop(0)
-        else:
-            return None
-    def size(self):
-        return len(self.queue)
-
 #init
 traversal_path = []
 visited = set()
 
-#hash map containing graphs of paths
+# init hash map containing graphs of paths
 room_maps = {
     0: {'n': '?', 's': '?', 'e': '?', 'w': '?'}
 }
@@ -65,17 +61,17 @@ def reverse_dir(dir):
         return "w"
 
 def travel_map(dir):
-    """create map of adjacent room, travel, and update room_maps"""
+    """create map of adjacent rooms, travel, and update room_maps"""
     directions = {}
-    #room id before travel
+    # room id before travel
     from_id = player.current_room.id
     from_dir = reverse_dir(dir)
 
-    #get room id of room traveling to and update map
+    # get room id of room traveling to and update map
     room_id = player.current_room.get_room_in_direction(dir).id
     room_maps[from_id][dir] = room_id
     
-    #travel and add directions to traversal_path
+    # travel and add directions to traversal_path
     player.travel(dir)
     traversal_path.append(dir)   
 
@@ -117,19 +113,19 @@ def find_nearest_exit(to_id):
         room = path[-1]
 
         for dir, room in room_maps[room[0]].items():
-            #add room to path
+            # add room to path
             if room not in visited_rooms:
                 room_path = list(path)
                 room_path.append((room, dir))
                 visited_rooms.add(room)
                 
                 queue.enqueue(room_path)
-                #closest exit
+                # closest exit
                 if room == "?":
                     room_path.pop(0)
                     path_to_room = [room[1] for room in room_path]
                     return path_to_room
-    #path not found
+    # path not found
     return None
 
 # MARK: Run Loop
@@ -149,7 +145,7 @@ while len(room_graph) > len(room_maps):
         travel_map(dir)
 
         print(f"I'm in room {player.current_room.id}. I came from the {reverse_dir(dir)}")
-    #BFS to find direction to add to stack 
+    # BFS to find next direction to add to stack 
     elif len(stack) == 0:
         for exit in exits:
             to_next_dir = find_nearest_exit(player.current_room.id)
